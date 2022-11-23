@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useGetPostsByIdQuery, useGetPostsQuery } from "./store/Posts/postsApi";
 
 export default function Posts() {
   const [postId, setPostId] = useState(-1);
@@ -32,30 +33,15 @@ export default function Posts() {
 }
 
 function PostList({ setPostId }) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [posts, setPosts] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch('https://jsonplaceholder.typicode.com/posts');
-        const data = await res.json()
-        setPosts(data);
-        setError(null);
-      } catch (error) {
-        setError(error);
-        setPosts(null);
-      }
-      setIsLoading(false);
-    };
-    fetchData();
-  }, []);
+  
+  const { data: posts, isLoading, error, isFetching } = useGetPostsQuery(undefined,{
+   /*  refetchOnMountOrArgChange: true,
+    pollingInterval: 30000 */
+  })
 
   if (isLoading) {
     return (
-      <div class="lds-ripple"><div></div><div></div></div>
+      <div className="lds-ripple"><div></div><div></div></div>
     );
   }
 
@@ -69,7 +55,9 @@ function PostList({ setPostId }) {
 
   return (
     <section>
-      <h2>Posts:</h2>
+      <h2>Posts:{isFetching && 
+        <div className="lds-ellipsis"><div></div><div></div><div></div><div></div></div>}
+      </h2>
       <ul>
         {posts.map((post) => (
           <PostItem key={post.id} post={post} setPostId={setPostId} />
@@ -90,31 +78,13 @@ function PostItem({ post, setPostId }) {
 }
 
 function PostDetails({ postId }) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [post, setPost] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`);
-        const data = await res.json();
-        setPost(data);
-        setError(null);
-      } catch (error) {
-        setError(error);
-        setPost(null);
-      }
-      setIsLoading(false);
-    };
-    fetchData();
-  }, [postId]);
+  
+ const {data: post, isLoading, error} = useGetPostsByIdQuery(postId)
 
   if (isLoading) {
     return (
       <div>
-        <div class="lds-ripple"><div></div><div></div></div>
+        <div className="lds-ripple"><div></div><div></div></div>
       </div>
     );
   }
